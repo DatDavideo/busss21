@@ -28,13 +28,49 @@ bool is_empty(stud_type const* liste) {
  */
 bool enqueue(stud_type** studenten_liste, int matnum, char const vorname[20], char const nachname[20]) {
     /* Hole dynamischen Speicher für den neuen Listen Eintrag */
-    
+    stud_type *newElement = (stud_type *)malloc(sizeof(stud_type));
+    if(newElement == NULL) {
+	perror("failed malloc in enqueue");
+	return false;
+    }
     /* Befülle den Speicher (vorsicht vor buffer overflows!) */
-    
+    newElement->matnum = matnum;
+    newElement->next = NULL;
+    if(strlcpy(newElement->vorname, vorname, 20) >= 20 || strlcpy(newElement->nachname, nachname, 20) >= 20){
+	perror("Error copying strings to new Element");								// shouldn't happen ever but better safe than sorry
+	free(newElement);
+	return false;
+    }
     /* Füge den neuen Eintrag in die Liste ein */
+    if(is_empty(*studenten_liste)){
         /* Ist die Liste leer ? */
-
-        /* Sortier den Studenten aufsteigend nach Matrikelnummer ein (matrikelnummern sind einzigartig) */
+	newElement->next = NULL;
+	*studenten_liste = newElement;
+	return true;
+    } else {
+	/* Sortier den Studenten aufsteigend nach Matrikelnummer ein (matrikelnummern sind einzigartig) */
+	stud_type *prev = NULL;
+	stud_type *iter = *studenten_liste;
+	while(iter->next != NULL){
+	    if(iter->matnum < matnum) {
+		prev = iter;
+		iter = iter->next;
+	    } else if(iter->matnum == matnum){
+		free(newElement);										// not specified what to do in this case -> fail
+		return false;
+	    } else {
+		newElement->next = iter;
+		if(prev == NULL) {
+		    *studenten_liste = newElement;
+		} else {
+		    prev->next = newElement;
+		}
+		return true;
+	    }
+	}
+	iter->next = newElement;
+	return true;
+    }
 }
 
 /* Löschen eines Elementes. 
@@ -47,15 +83,31 @@ bool enqueue(stud_type** studenten_liste, int matnum, char const vorname[20], ch
  */
 bool dequeue(stud_type** studenten_liste, int matnum) {
     /* Prüfe Randbedingungen */
-    
-    /* Finde den Studenten */
-    
-    /* Lösche den Studenten und gibt den Speicher frei */
-    
+    if(is_empty(*studenten_liste)) {
+	return false;
+    }
     /* Was muss passieren wenn das 1. Element gelöscht wird? */
+    stud_type *iter = *studenten_liste;
+    if((*studenten_liste)->matnum == matnum) {
+	stud_type *tmp = iter->next;
+	free(iter);
+	*studenten_liste = tmp;
+	return true;
+    }
+    /* Finde den Studenten */
+    while(iter->next != NULL) {
+	/* Lösche den Studenten und gibt den Speicher frei */
+	if(iter->next->matnum == matnum) {
+	    stud_type *tmp = iter->next->next;
+	    free(iter->next);
+	    iter->next = tmp;
+	    return true;
+	} else {
+	    iter = iter->next;
+	}
+    }
     /* Was ist wenn es nicht in der Liste ist? */
-    /* ... */
-    
+    return false;
 }
 
 /* Auslesen eines Elementes 
