@@ -219,15 +219,13 @@ sort_type **sort_students(stud_type **liste, int cmp(const stud_type *e1, const 
     sort_type *prev = NULL;
     for(i = listSize-1; i >= 0; i--) {
 	sort_type *elem = (sort_type *)malloc(sizeof(sort_type));
+	// memset(elem, 0, sizeof(sort_type));
 	elem->student = listArray[i];
 	elem->next = prev;
 	prev = elem;
+	printf("    Matrikelnummer %4i: %s %s\n", elem->student->matnum, elem->student->vorname, elem->student->nachname);     // Doesn't work without this print.
     }
-    for(sort_type *iter = prev; iter != NULL; iter = iter->next){
-	printf("    Matrikelnummer %4i: %s %s\n", iter->student->matnum, iter->student->vorname, iter->student->nachname);	// Doesn't work without this print.
-    }
-    sort_type **result = (sort_type **)malloc(sizeof(sort_type *));
-    result = &prev;
+    sort_type **result = &prev;
     return result;
 }
 
@@ -257,6 +255,7 @@ int main(void) {
         /* Erzeuge sortierte Liste nach Vorname */
 	sort_type **sorted = sort_students(&studenten_liste, cmpVorname);
         /* Gebe Liste aus */
+	test_dump(studenten_liste);
 	printf("Gebe alle sortierten Studenten aus ...\n");
 	for(sort_type *iter = *sorted; iter != NULL; iter = iter->next){
 	    printf("    Matrikelnummer %4i: %s %s\n", iter->student->matnum,  iter->student->vorname, iter->student->nachname);
