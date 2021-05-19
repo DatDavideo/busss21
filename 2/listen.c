@@ -11,6 +11,11 @@ typedef struct stud_type {
     struct stud_type *next;
 } stud_type;
 
+typedef struct sort_type {
+    stud_type *student;
+    struct sort_type *next;
+} sort_type;
+
 
 /* Ist die Datenbank leer?      */
 bool is_empty(stud_type const* liste) {
@@ -185,6 +190,47 @@ static void test_dump(stud_type const* liste) {
     }
 }
 
+int cmpVorname(const stud_type *e1, const stud_type *e2) {
+    stud_type **a = (stud_type **)e1;
+    stud_type **b = (stud_type **)e2;
+    return strcmp((*a)->vorname, (*b)->vorname);
+}
+
+int cmpNachname(const stud_type *e1, const stud_type *e2) {
+    stud_type **a = (stud_type **)e1;
+    stud_type **b = (stud_type **)e2;
+    return strcmp((*a)->nachname, (*b)->nachname);
+}
+
+
+sort_type **sort_students(stud_type **liste, int cmp(const stud_type *e1, const stud_type *e2)) {
+    int listSize = 0;
+    for(stud_type *iter = *liste; iter != NULL; iter=iter->next){
+	listSize++;
+    }
+    stud_type *listArray[listSize];
+    int i = 0;
+    for(stud_type *iter = *liste; iter != NULL; iter=iter->next){
+        listArray[i] = iter;
+	i++;
+    }
+    // put all liste entries into array, sort array with qsort, then generate new list from that array
+    mergesort(listArray, listSize, sizeof(stud_type *), (int (*)(const void *, const void *))cmp);
+    sort_type *prev = NULL;
+    for(i = listSize-1; i >= 0; i--) {
+	sort_type *elem = (sort_type *)malloc(sizeof(sort_type));
+	elem->student = listArray[i];
+	elem->next = prev;
+	prev = elem;
+    }
+    for(sort_type *iter = prev; iter != NULL; iter = iter->next){
+	printf("    Matrikelnummer %4i: %s %s\n", iter->student->matnum, iter->student->vorname, iter->student->nachname);	// Doesn't work without this print.
+    }
+    sort_type **result = (sort_type **)malloc(sizeof(sort_type *));
+    result = &prev;
+    return result;
+}
+
 /* Test der Listenfunktionen  */
 int main(void) {
     /* Initialisierung der Datenbank */
@@ -209,8 +255,14 @@ int main(void) {
 
     {
         /* Erzeuge sortierte Liste nach Vorname */
+	sort_type **sorted = sort_students(&studenten_liste, cmpVorname);
         /* Gebe Liste aus */
+	printf("Gebe alle sortierten Studenten aus ...\n");
+	for(sort_type *iter = *sorted; iter != NULL; iter = iter->next){
+	    printf("    Matrikelnummer %4i: %s %s\n", iter->student->matnum,  iter->student->vorname, iter->student->nachname);
+	}
         /* Räume erzeugte Liste auf */
+	
     }
 
     {
